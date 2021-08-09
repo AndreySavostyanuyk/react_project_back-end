@@ -5,7 +5,7 @@ const app = express();
 const apiRoutes = require("./src/modules/routes/routes");
 
 app.use(cors());
-const uri = "mongodb+srv://user:1234@cluster0.n7uwr.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+const uri = "mongodb+srv://user:1234@cluster0.n7uwr.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
 mongoose.connect(uri, {useNewUrlParser: true, useUnifiedTopology: true});
 
 app.use(express.json());
