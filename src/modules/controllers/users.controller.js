@@ -27,3 +27,31 @@ module.exports.createUsers = async(req, res, next) => {
     });
   }
 };
+
+module.exports.loginUsers = async(req, res, next) => {
+  const { login, password } = req.body;
+  const users = await Users.findOne({ login })
+  
+  if (!users) {
+    res.status(404).send('Users not found');
+  }
+
+  const isPassValid = bcrypt.compareSync(password, users.password)
+
+  if (!isPassValid) {
+    res.status(400).send('Invalid password');
+  }
+
+  const token = jwt.sign({ _id: users._id }, secretKey, { expiresIn: "1h" });
+
+  if (typeof(login) === 'string' 
+      && login
+      && password
+      ) {
+    users.save().then(result1 => {
+      res.send({ token, result1 })
+    });
+  } else {
+    res.status(404).send('Sorry cant find that!');
+  };
+};
