@@ -20,7 +20,7 @@ module.exports.createUsers = async(req, res, next) => {
   } else {
     const hashPassword = await bcrypt.hash(password, 8);
     const users = new Users({ login, password: hashPassword });
-    const token = jwt.sign({ _id: users._id }, secretKey, { expiresIn: "1h" });
+    const token = jwt.sign({ _id: users._id }, secretKey, { expiresIn: "1000" });
 
     users.save().then(result1 => {
       res.send({ token, result1 })
@@ -42,7 +42,7 @@ module.exports.loginUsers = async(req, res, next) => {
     return  res.status(401).send('error authorization');
   }
 
-  const token = jwt.sign({ _id: users._id }, secretKey, { expiresIn: "1h" });
+  const token = jwt.sign({ _id: users._id }, secretKey, { expiresIn: "1ms" });
 
   if (typeof(login) === 'string' 
       && login
