@@ -8,8 +8,8 @@ module.exports.allRecords = (req, res, next) => {
   token = req.headers["token"];
 
   const decoded = jwt.decode(token);
-  const textId = decoded._id ;
-  const uniqRecords = Records.find({ userId: textId })
+  const textId = decoded._id;
+  const uniqRecords = Records.find({ userId: textId });
   
   uniqRecords.find().then(result => {
     res.send({ data: result })
@@ -18,7 +18,7 @@ module.exports.allRecords = (req, res, next) => {
 
 module.exports.createUsers = async(req, res, next) => {
   const {_id, login, password } = req.body;
-  const uniqUser = await Users.findOne({ login })
+  const uniqUser = await Users.findOne({ login });
   
   if (uniqUser) {
     return res.status(400).send(`User with ${login} exist`);
@@ -45,13 +45,13 @@ module.exports.loginUsers = async(req, res, next) => {
   const users = await Users.findOne({ login });
   
   if (!users) {
-    return res.status(404).send('Такого пользователя не существует');
+    return res.status(404).send('This user does not exist');
   }
 
   const isPassValid = bcrypt.compareSync(password, users.password)
 
   if (!isPassValid) {
-    return res.status(404).send('неверно введен логин или пароль');
+    return res.status(404).send('username or password entered incorrectly');
   }
 
   const token = jwt.sign({ _id: users._id  }, secretKey, { expiresIn: "1h" });
@@ -73,25 +73,26 @@ module.exports.loginUsers = async(req, res, next) => {
 };
 
 module.exports.createRecords = async(req, res, next) => {
-  const { userId, name, doctor, date, complaints } = req.body;
+  const { token, name, doctor, date, complaints } = req.body;
 
   if (typeof(name) !== 'string' 
     && typeof(doctor) !== 'string' 
     && typeof(complaints) !== 'string' 
+    && typeof(date) !== 'string' 
+    && !date
     && !name 
     && !doctor
     && !complaints) 
   {
     return res.status(422).send('incorrect data');
   } else {
-    const decoded = jwt.decode(userId);
+    const decoded = jwt.decode(token);
     const textId = decoded._id ;
     
     const records = new Records({ userId: textId, name, doctor, date, complaints });
-    const uniqRecords = Records.find({ userId: textId })
 
     records.save().then(result1 => {
-      uniqRecords.find().then(result => {
+      Records.find({ userId: textId }).then(result => {
         res.send({ data: result })
       });
     });
@@ -101,21 +102,29 @@ module.exports.createRecords = async(req, res, next) => {
 module.exports.deleteRecords = (req, res, next) => {
   token = req.headers["token"];
 
+  if (!token) {
+    return res.status(401).send('token does not exist');
+  }
+
+  if (!req.query._id) {
+    return res.status(404).send('This id does not exist');
+  }
+
   const decoded = jwt.decode(token);
   const textId = decoded._id ;
-  const uniqRecords = Records.find({ userId: textId })
 
-  uniqRecords.deleteOne({
+  Records.deleteOne({
     _id: req.query._id
   }).then(result => {
-    uniqRecords.find().then(result => {
+    Records.find({ userId: textId }).then(result => {
       res.send({ data: result })
     });
   });
 };  
 
 module.exports.editRecords = (req, res, next) => {
-  token = req.headers["token"];
+  const { _id, name, doctor, date, complaints } = req.body;
+  const token = req.headers["token"];
 
   if (!token) {
     return res.status(401).send('token does not exist');
@@ -123,16 +132,18 @@ module.exports.editRecords = (req, res, next) => {
 
   const decoded = jwt.decode(token);
   const textId = decoded._id ;
-  const uniqRecords = Records.find({ userId: textId })
 
-  if (typeof(req.body.name) === 'string'
-      && typeof(req.body.doctor) === 'string' 
-      && typeof(req.body.complaints) === 'string' 
-      && req.body.name
-      && req.body.doctor
-      && req.body.complaints) {
-    Records.updateOne({ _id: req.query._id }, req.body).then(result1 => {
-      uniqRecords.find().then(result => {
+  if (typeof(name) === 'string'
+      && typeof(doctor) === 'string' 
+      && typeof(complaints) === 'string' 
+      && typeof(date) === 'string' 
+      && _id
+      && name
+      && date
+      && doctor
+      && complaints) {
+    Records.updateOne({ _id }, req.body).then(result1 => {
+      Records.find({ userId: textId }).then(result => {
         res.send({ data: result })
       });
     });
