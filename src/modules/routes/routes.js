@@ -7,10 +7,14 @@ const {
   createRecords,
   allRecords,
   deleteRecords,
-  editRecords
+  editRecords,
+  filterRecords,
+  sortedRecords
 } = require('../controllers/users.controller');
 
 router.get('/allRecords', allRecords);
+router.post('/filterRecords', filterRecords);
+router.post('/sortedRecords', sortedRecords);
 router.post('/createUsers', createUsers);
 router.post('/loginUsers', loginUsers);
 router.post('/createRecords', createRecords);

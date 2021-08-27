@@ -9,9 +9,8 @@ module.exports.allRecords = (req, res, next) => {
 
   const decoded = jwt.decode(token);
   const textId = decoded._id;
-  const uniqRecords = Records.find({ userId: textId });
   
-  uniqRecords.find().then(result => {
+  Records.find({ userId: textId }).then(result => {
     res.send({ data: result })
   });
 };
@@ -150,4 +149,72 @@ module.exports.editRecords = (req, res, next) => {
   } else {
     res.status(404).send('Sorry cant find that!');
   };
+}
+
+module.exports.filterRecords = (req, res, next) => {
+  const { withdate, ondate } = req.body;
+
+  if (!withdate && !ondate) {
+    return res.status(401).send('data not found');
+  }
+
+  if (withdate && !ondate) {
+    Records.find({ date: {$gte: withdate} }).then(result => {
+      res.send({ data: result })
+    });
+  } else if (!withdate && ondate) {
+    Records.find({ date: {$lte: ondate} }).then(result => {
+      res.send({ data: result })
+    });
+  } else if (withdate && ondate) {
+    Records.find({ date: {$gte: withdate, $lte: ondate} }).then(result => {
+      res.send({ data: result })
+    });
+  }
+}
+
+module.exports.sortedRecords = (req, res, next) => {
+  const { textsort, direction } = req.body;
+
+  if (!textsort && !direction) {
+    return res.status(401).send('data not found');
+  }
+
+  if (textsort === "Name") {
+    if (direction === "Asc") {
+      Records.find().sort({name: 1}).then(result => {
+        res.send({ data: result })
+      });
+    }
+
+    if (direction === "Desc") {
+      Records.find().sort({name: -1}).then(result => {
+        res.send({ data: result })
+      });
+    }
+  } else if (textsort === "Doctor") {
+    if (direction === "Asc") {
+      Records.find().sort({doctor: 1}).then(result => {
+        res.send({ data: result })
+      });
+    }
+
+    if (direction === "Desc") {
+      Records.find().sort({doctor: -1}).then(result => {
+        res.send({ data: result })
+      });
+    }
+  } else if (textsort === "Date") {
+    if (direction === "Asc") {
+      Records.find().sort({date: 1}).then(result => {
+        res.send({ data: result })
+      });
+    }
+
+    if (direction === "Desc") {
+      Records.find().sort({date: -1}).then(result => {
+        res.send({ data: result })
+      });
+    }
+  } 
 }
